@@ -1,0 +1,105 @@
+CREATE DATABASE Misc
+GO 
+
+USE Misc
+GO
+
+CREATE TABLE Students
+    ( 
+    [ID] INT IDENTITY(1,1), 
+    [FirstName] VARCHAR(100), 
+    [LastName] VARCHAR(100), 
+    [Country] VARCHAR(100), 
+    ) 
+GO 
+
+-- insert records in Students table
+INSERT INTO Students 
+		    ([FirstName],[LastName],[Country] )
+VALUES	('Rose','Anildas','Phillipines'),
+        ('Roni','Jamdas','India'),
+        ('Mohan','Kumar','USA'),
+        ('James','Barry','UK'),
+        ('Rose','Anildas','Phillipines'),
+        ('James','Barry','UK'),
+		    ('Roni','Jamdas','India'),
+		    ('Rose','Anildas','Phillipines'),
+        ('Roni','Jamdas','India'),
+        ('James','Barry','UK')
+GO
+
+-- display all records in students table
+SELECT [ID]
+      ,[FirstName]
+      ,[LastName]
+      ,[Country]
+FROM [Misc].[dbo].[Students]
+GO
+
+-- Finding records that exist in students table more than one time
+SELECT	[FirstName], 
+		    [LastName], 
+		    [Country], 
+		    COUNT(*) AS CNT
+FROM [dbo].[Students]
+GROUP BY	[FirstName], 
+			    [LastName], 
+			    [Country]
+HAVING COUNT(*) > 1;
+GO
+
+-- Finding records that exist in students table more than one time
+SELECT *
+FROM [dbo].[Students]
+WHERE ID NOT IN
+    (
+        SELECT MAX(ID)
+        FROM [dbo].[Students]
+        GROUP BY [FirstName], 
+                 [LastName], 
+                 [Country]
+    );
+GO
+
+ -- display duplicate records in students table by using common-table-expression (CTE)
+WITH CTE([firstname], [lastname], [country], dup-count)
+AS 
+(
+  SELECT [firstname], [lastname], [country], ROW_NUMBER() OVER(PARTITION BY [firstname], [lastname], [country]
+        ORDER BY id) AS dup-count
+  FROM [dbo].[Students]
+)	
+SELECT *
+FROM CTE;
+GO
+
+-- delete duplicate records in students table by using sub-query
+DELETE FROM [dbo].[Students]
+WHERE ID NOT IN
+    (
+        SELECT MAX(ID) AS MaxRecordID
+        FROM [dbo].[Students]
+        GROUP BY [FirstName], 
+                 [LastName], 
+                 [Country]
+    );
+	GO
+
+-- delete duplicate records in students table by using sub-query
+WITH CTE([firstname], [lastname], [country], dup-count)
+AS 
+(
+  SELECT [firstname], [lastname], [country], ROW_NUMBER() OVER(PARTITION BY [firstname], [lastname], [country] ORDER BY id) AS dup-count
+  FROM [dbo].[Students]
+)	
+DELETE 
+FROM CTE WHERE dup-count <> 1;
+GO
+
+-- display all records in students table
+SELECT [ID]
+      ,[FirstName]
+      ,[LastName]
+      ,[Country]
+FROM [Misc].[dbo].[Students]
+GO
